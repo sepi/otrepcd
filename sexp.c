@@ -53,6 +53,9 @@ bool integer_p(object_t *i);
 object_t *head(object_t *o);
 object_t *tail(object_t *o);
 
+void nl() { printf("\n"); }
+void fatal_error(const char *message);
+
 void
 init_nil() {
 	nil_.type = NIL_TYPE;
@@ -121,8 +124,7 @@ intern_symbol(char *sym_name) {
 		/* Nothing found */
 		s = insert_symbol(sym_name);
 		if (s == NULL_SYMBOL) {
-			printf("ERROR: symbol table full\n");
-			exit(-1);
+			fatal_error("ERROR: symbol table full.");
 		} else {
 			return s;
 		}
@@ -147,8 +149,7 @@ pair_t *
 pair(object_t *head, object_t *tail) {
 	pair_t *c = (pair_t *)malloc(sizeof(pair_t));
 	if (c == NULL) {
-		printf("Error: Could not allocate pair cell.\n");
-		exit(-1);
+		fatal_error("Error: Could not allocate pair cell.");
 	} else {
 		c->head = head;
 		c->tail = tail;
@@ -160,7 +161,7 @@ object_t *
 make_symbol_object(symbol_t s) {
 	object_t *a = (object_t *)malloc(sizeof(object_t));
 	if (a == NULL) {
-		printf("Error: Could not allocate object.\n");
+		fatal_error("Error: Could not allocate object.");
 	} else {
 		a->type = SYMBOL_TYPE;
 		a->symbol = s;
@@ -178,7 +179,7 @@ object_t *
 make_integer_object(int i) {
 	object_t *a = (object_t *)malloc(sizeof(object_t));
 	if (a == NULL) {
-		printf("Error: Could not allocate object.\n");
+		fatal_error("Error: Could not allocate object.");
 	} else {
 		a->type = INTEGER_TYPE;
 		a->integer = i;
@@ -195,8 +196,7 @@ object_t *
 make_pair_object(pair_t *c) {
 	object_t *a = (object_t *)malloc(sizeof(object_t));
 	if (a == NULL) {
-		printf("Error: Could not allocate object.\n");
-		exit(-1);
+		fatal_error("Error: Could not allocate object.");
 	} else {
 		a->type = PAIR_TYPE;
 		a->pair = c;
@@ -214,15 +214,13 @@ object_t *
 make_string_object(char *str) {
 	object_t *o = (object_t *)malloc(sizeof(object_t));
 	if (o == NULL) {
-		fprintf(stderr, "Error: Could not allocate object.\n");
-		exit(-1);
+		fatal_error("Error: Could not allocate object.");
 	} else {
 		o->type = STRING_TYPE;
 		int str_len = strlen(str);
 		char *new_str = (char *)calloc(str_len+1, sizeof(char));
 		if (str == NULL) {
-			fprintf(stderr, "Error: Could not allocate object.\n");
-			exit(-1);
+			fatal_error("Error: Could not allocate object.");
 		}
 		strncpy(new_str, str, str_len);
 		o->string = str;
@@ -319,6 +317,13 @@ tail(object_t *o) {
 	return o->pair->tail;
 }
 
+void
+fatal_error(const char *message) {
+	fprintf(stderr, message);
+	nl();
+	exit(-1);
+}
+
 bool
 proper_list_p(object_t *l) {
 	if (!pair_p(l)) {
@@ -394,8 +399,6 @@ write_proper_list(object_t *l) {
 	printf(")");
 }
 
-void nl() { printf("\n"); }
-
 char sexp[] = "(foo (bar 1 2 3) \"faz\")";
 
 bool
@@ -462,24 +465,22 @@ read_atom(const char *str, int *count) {
 	} else if (integer_char_p(*str)) {
 		return read_integer(str, count);
 	} else {
-		fprintf(stderr, "Error: Not implemented\n");
-		exit(-1);
+		fatal_error("Error: Not implemented");
 	}
 }
 
 object_t *
 read(const char *str, int *count) {
-	state = 
 	object_t *current_pair, *car, *cdr;
 	do {
 		switch (*str) {
 			case '(':
 				++str;
-				continue;
+				(*count)++;
+				car = read(str, count);
 			case ')':
-				
 				++str;
-				
+		}
 	} while (str != '\0');
 }
 
